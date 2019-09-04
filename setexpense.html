@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>发起报销</title>
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<link href="css/base.css" rel="stylesheet" />
+		<link href="css/mui.picker.min.css" rel="stylesheet" />
+		<link href="css/mui.poppicker.css" rel="stylesheet" />
+		<style>
+			.select-btn{
+				float: none !important;
+				width: auto !important;
+			}
+			#offCanvasContentScroll form .mui-input-row{
+				padding: 5px 0 10px 0;
+				height: auto;
+			}
+			.upload-img{
+				margin: 5px 0 0 20px;
+			}
+			.img-list .img-list-li{
+				display: inline-block;
+				position: relative;
+				height: auto;
+			}
+			.img-list .img-list-li .mui-icon{
+				position: absolute;
+				top: 0px;
+				right: 0;
+				color: red;
+				cursor: pointer;
+				font-weight: bold;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="offCanvasWrapper" class="mui-off-canvas-wrap mui-draggable">
+			<!--侧滑菜单部分-->
+			<aside id="offCanvasSide" class="mui-off-canvas-left">
+				<div id="offCanvasSideScroll" class="mui-scroll-wrapper">
+					<div class="mui-scroll">
+						<div class="title" style="margin-bottom: 25px;">导航</div>
+						<ul class="mui-table-view mui-table-view-chevron mui-table-view-inverted">
+							<li class="mui-table-view-cell">
+								<a class="mui-navigate-right mui-active" id="menu1" href="/setexpense.html">
+									发起报销
+								</a>
+							</li>
+							<li class="mui-table-view-cell" href="/setincome.html">
+								<a class="mui-navigate-right">
+									发起上缴
+								</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</aside>
+			<!--主界面部分-->
+			<div class="mui-inner-wrap">
+				<header class="mui-bar mui-bar-nav">
+					<a href="#offCanvasSide" class="mui-icon mui-action-menu mui-icon-bars mui-pull-left"></a>
+					<h1 class="mui-title">发起报销</h1>
+				</header>
+				<div id="offCanvasContentScroll" class="mui-content mui-scroll-wrapper" style="overflow: auto;">
+					<div class="mui-card">
+						<form class="mui-input-group" style="margin-top: 15px;">
+							<input type="hidden" id='id' value='0' />
+							<div class="mui-input-row">
+								<label>财务大人</label>
+								<button id='to_uid_name' class="mui-btn mui-btn-block select-btn" type='button'>请选择财务大人</button>
+								<input type="hidden" id='to_uid' value='0' />
+							</div>
+							<div class="mui-input-row">
+								<label>类别</label>
+								<button id='cate_id_name' class="mui-btn mui-btn-block select-btn" type='button'>请选择类别</button>
+								<input type="hidden" id='cate_id' value='0' />
+							</div>
+							<div class="mui-input-row">
+								<label>报销标题</label>
+								<input type="text" id="title" class="mui-input-clear" placeholder="报销标题">
+							</div>
+							<div class="mui-input-row">
+								<label>报销内容</label>
+								<textarea id="content" placeholder="报销内容"></textarea>
+							</div>
+							<div class="mui-input-row">
+								<label>费用日期</label>
+								<button id='at_date_name' class="mui-btn mui-btn-block select-btn" type='button'>请选择费用日期</button>
+								<input type="hidden" id='at_date' value='0' />
+							</div>
+							<div class="mui-input-row">
+								<label>报销金额</label>
+								<input type="text" id="price" class="mui-input-clear" placeholder="报销金额">
+							</div>
+							<div class="mui-input-row">
+								<label>报销明细</label>
+								<button id='update_img_btn' class="mui-btn mui-btn-block select-btn" type='button'>上传图片</button>
+							</div>
+							<div class="img-list"></div>
+						</form>
+						<div class="mui-button-row" style="margin: 10px 0;">
+							<button type="button" class="mui-btn submit-btn mui-btn-primary">提交</button>
+							<button type="button" class="mui-btn back-btn mui-btn-danger">返回</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script type="application/javascript" src="js/jquery.min.js"></script>
+		<script src="js/mui.picker.min.js"></script>
+		<script src="js/mui.poppicker.js"></script>
+		<script src="js/mui.dtpicker.js"></script>
+		<script src="js/plupload/plupload.full.min.js"></script>
+		<script type="application/javascript" src="js/config.js"></script>
+		<script src="js/common.js"></script>
+		<script>
+			var $$=jQuery.noConflict();
+			mui.init();
+			var userPicker = new mui.PopPicker();
+			var catePicker = new mui.PopPicker();
+			var atDate = new mui.DtPicker({
+				"type": "date"
+			});
+			mui.ready(function() {
+				mui('#offCanvasSideScroll').on('tap', 'a', function() {
+					mui.openWindow({
+						id: this.getAttribute('href'),
+						url: this.href,
+						styles: {
+							popGesture: "close"
+						},
+						show: {
+							aniShow: "pop-in"
+						},
+						waiting: {
+							autoShow: false
+						}
+					});
+				});
+				mui('#offCanvasContentScroll').on('tap', '.back-btn', function() {
+					mui.openWindow({
+						id: 'index',
+						url: '/',
+						styles: {
+							popGesture: "close"
+						},
+						show: {
+							aniShow: "pop-in"
+						},
+						waiting: {
+							autoShow: false
+						}
+					});
+				});
+				/*****************财务大人start**********************/
+				mui.ajax(ypyC.service_host + '/user/getFinancer', {
+					dataType: 'json', //服务器返回json格式数据
+					type: 'get', //HTTP请求类型
+					timeout: 10000, //超时时间设置为10秒；
+					headers: {
+						'token': localStorage.getItem('token')
+					},
+					success: function(res) {
+						if (res.code == 201) {
+							localStorage.removeItem('token');
+							mui.openWindow({
+								'url': 'login.html'
+							});
+						} else if (res.code == 0) {
+							var financerData = [];
+							for (d in res.data) {
+								financerData.push({
+									'value': res.data[d].value,
+									'text': res.data[d].name
+								});
+							}
+							userPicker.setData(financerData);
+						} else {
+							mui.toast(res.msg);
+						}
+					},
+					error: function(xhr, type, errorThrown) {
+						mui.toast('系统错误');
+					}
+				});
+
+				// mui('#showUserPicker')
+				// var showUserPickerButton = document.getElementById('showUserPicker');
+				mui('#to_uid_name')[0].addEventListener('tap', function(event) {
+					userPicker.show(function(items) {
+						mui('#to_uid_name')[0].innerText = items[0].text;
+						mui('#to_uid')[0].value = items[0].value;
+						//返回 false 可以阻止选择框的关闭
+						//return false;
+					});
+				}, false);
+				/*****************财务大人end**********************/
+
+				/*****************类别start**********************/
+				// mui.ajax(ypyC.service_host+'/user/getFinancer',{
+				// 	dataType:'json',//服务器返回json格式数据
+				// 	type:'get',//HTTP请求类型
+				// 	timeout:10000,//超时时间设置为10秒；
+				// 	headers:{'token':localStorage.getItem('token')},
+				// 	success:function(res){
+				// 		if(res.code == 201) {
+				// 			localStorage.removeItem('token');
+				// 			mui.openWindow({
+				// 				'url':'login.html'
+				// 			});
+				// 		} else if (res.code == 0) {
+				// 			var financerData = [];
+				// 			for(d in res.data) {
+				// 				financerData.push({'value':res.data[d].value, 'text':res.data[d].name});
+				// 			}
+				// 			console.log(financerData)
+				// 			userPicker.setData(financerData);
+				// 		} else{
+				// 			mui.toast(res.msg);
+				// 		}
+				// 	},
+				// 	error:function(xhr,type,errorThrown){
+				// 		mui.toast('系统错误');
+				// 	}
+				// });
+				catePicker.setData([{
+					value: 99,
+					text: '其他'
+				}]);
+				mui('#cate_id_name')[0].addEventListener('tap', function(event) {
+					catePicker.show(function(items) {
+						mui('#cate_id_name')[0].innerText = items[0].text;
+						mui('#cate_id')[0].value = items[0].value;
+						//返回 false 可以阻止选择框的关闭
+						//return false;
+					});
+				}, false);
+				/*****************类别end**********************/
+				/*****************日期start*********************/
+				mui('#at_date_name')[0].addEventListener('tap', function(event) {
+					atDate.show(function(items) {
+						console.log(items);
+						mui('#at_date_name')[0].innerText = items.text;
+						mui('#at_date')[0].value = items.text;
+						//返回 false 可以阻止选择框的关闭
+						//return false;
+					});
+				}, false);
+				/*****************日期end*********************/
+				/*****************上传图片start*********************/
+				//实例化一个plupload上传对象
+				var uploader = new plupload.Uploader({
+					browse_button: 'update_img_btn', //触发文件选择对话框的按钮，为那个元素id
+					url: ypyC.service_host + '/upload/img', //服务器端的上传页面地址
+					flash_swf_url: 'js/plipload/Moxie.swf', //swf文件，当需要使用swf方式进行上传时需要配置该参数
+					silverlight_xap_url: 'js/plipload/Moxie.xap', //silverlight文件，当需要使用silverlight方式进行上传时需要配置该参数
+					headers: {
+						'token': localStorage.getItem('token')
+					}
+				});
+				//在实例对象上调用init()方法进行初始化
+				uploader.init();
+				uploader.bind('FilesAdded', function(uploader, file) {
+					uploader.start();
+				});
+				uploader.bind('FileUploaded', function(uploader, file, responseObject) {
+					var html = '<div class="img-list-li"><img class="upload-img" src="' + JSON.parse(responseObject.response).data +
+						'" width="90" /><input type="hidden" class="img" value="' + JSON.parse(responseObject.response).data +
+						'"/><i class="mui-icon mui-icon-closeempty"></i></div>';
+					mui('.img-list')[0].insertAdjacentHTML('beforeend', html);
+				});
+				mui('.img-list').on('tap', '.mui-icon-closeempty', function() {
+					this.parentNode.remove();
+				});
+				/*****************上传图片*********************/
+				mui('#offCanvasContentScroll').on('tap', '.submit-btn', function() {
+					var id = mui('#id')[0].value;
+					var to_uid = mui('#to_uid')[0].value;
+					var cate_id = mui('#cate_id')[0].value;
+					var title = mui('#title')[0].value;
+					var content = mui('#content')[0].value;
+					var at_date = mui('#at_date')[0].value;
+					var price = mui('#price')[0].value;
+					if(to_uid == 0) {
+						mui.toast('请选择财务大人');
+						return false;
+					}
+					if(cate_id == 0) {
+						mui.toast('请选择类别');
+						return false;
+					}
+					if(title == '') {
+						mui.toast('请填写标题');
+						return false;
+					}
+					if(at_date == 0) {
+						mui.toast('请选择费用日期');
+						return false;
+					}
+					if(price == '') {
+						mui.toast('请填写报销金额');
+						return false;
+					}
+					
+					var imgs = [];
+					mui('.img').each(function(){
+						imgs.push(this.value);
+					});
+					
+					mui.ajax(ypyC.service_host+'/bill/setExpense',{
+						data:{
+							id:id,
+							to_uid:to_uid,
+							cate_id:cate_id,
+							title:title,
+							content:content,
+							at_date:at_date,
+							price:price,
+							imgs:imgs
+						},
+						dataType:'json',//服务器返回json格式数据
+						type:'POST',//HTTP请求类型
+						timeout:10000,//超时时间设置为10秒；
+						headers:{'token':localStorage.getItem('token')},
+						success:function(data){
+							if(data.code == 201) {
+								localStorage.removeItem('token');
+								mui.openWindow({
+									'url':'login.html'
+								});
+							} else if(data.code == 0) {
+								mui.alert('保存成功', null, null, function(){
+									mui.openWindow({
+										'url':'index.html'
+									});
+								});
+							} else {
+								mui.toast(data.msg);
+							}
+						},
+						error:function(xhr,type,errorThrown){
+							mui.toast('系统错误');
+						}
+					});
+				});
+			});
+			$$(function(){
+				var id = getQueryVariable('id');
+				if (id) {
+					mui.ajax(ypyC.service_host+'/bill/info?id='+id,{
+						dataType:'json',//服务器返回json格式数据
+						type:'get',//HTTP请求类型
+						timeout:10000,//超时时间设置为10秒；
+						headers:{'token':localStorage.getItem('token')},
+						success:function(data){
+							if(data.code == 201) {
+								localStorage.removeItem('token');
+								mui.openWindow({
+									'url':'login.html'
+								});
+							} else if(data.code == 0) {
+								userPicker.pickers[0].setSelectedIndex(1);
+								$$('#id').val(data.data.id);
+								$$('#to_uid_name').text(data.data.to_realname);
+								$$('#to_uid').val(data.data.to_uid);
+								$$('#cate_id_name').text('其他');
+								$$('#cate_id').val(data.data.cate_id);
+								$$('#title').val(data.data.title);
+								$$('#content').val(data.data.content);
+								$$('#at_date_name').text(data.data.at_date);
+								$$('#at_date').val(data.data.at_date);
+								$$('#price').val(data.data.price);
+								
+								if (data.data.imgs.length > 0) {
+									for(i in data.data.imgs) {
+										var html = '<div class="img-list-li"><img class="upload-img" src="' + data.data.imgs[i].img_url +
+											'" width="90" /><input type="hidden" class="img" value="' + data.data.imgs[i].img_url +
+											'"/><i class="mui-icon mui-icon-closeempty"></i></div>';
+										mui('.img-list')[0].insertAdjacentHTML('beforeend', html);
+									}
+								}
+								
+								atDate.setSelectedValue(data.data.at_date);
+							} else {
+								mui.toast(data.msg);
+							}
+						},
+						error:function(xhr,type,errorThrown){
+							mui.toast('系统错误');
+						}
+					});
+				}
+			});
+		</script>
+	</body>
+</html>

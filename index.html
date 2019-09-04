@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>YPY</title>
+    <link href="css/mui.min.css" rel="stylesheet"/>
+	<link href="css/mui.previewimage.css" rel="stylesheet"/>
+	<link href="css/base.css" rel="stylesheet"/>
+	<style>
+		.mui-card-footer button{
+			margin: 5px;;
+		}
+	</style>
+</head>
+<body>
+<div id="offCanvasWrapper" class="mui-off-canvas-wrap mui-draggable">
+	<!--侧滑菜单部分-->
+	<aside id="offCanvasSide" class="mui-off-canvas-left">
+		<div id="offCanvasSideScroll" class="mui-scroll-wrapper">
+			<div class="mui-scroll">
+				<div class="title" style="margin-bottom: 25px;">导航</div>
+				<ul class="mui-table-view mui-table-view-chevron mui-table-view-inverted">
+					<li class="mui-table-view-cell">
+						<a class="mui-navigate-right" id="menu1" href="/setexpense.html">
+							发起报销
+						</a>
+					</li>
+					<li class="mui-table-view-cell" href="/setincome.html">
+						<a class="mui-navigate-right">
+							发起上缴
+						</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</aside>
+	<!--主界面部分-->
+	<div class="mui-inner-wrap">
+		<header class="mui-bar mui-bar-nav">
+			<a href="#offCanvasSide" class="mui-icon mui-action-menu mui-icon-bars mui-pull-left"></a>
+			<h1 class="mui-title">列表</h1>
+		</header>
+		<div id="offCanvasContentScroll" class="mui-content mui-scroll-wrapper"  style="overflow: auto;">
+			<div class="mui-scroll">
+				<div class="list" id="list"></div>
+			</div>
+		</div>
+		<!-- off-canvas backdrop -->
+		<div class="mui-off-canvas-backdrop"></div>
+	</div>
+</div>
+<script src="js/mui.min.js"></script>
+<script type="application/javascript" src="js/config.js"></script>
+<script type="application/javascript" src="js/jquery.min.js"></script>
+<script src="js/mui.previewimage.js"></script>
+<script src="js/mui.zoom.js"></script>
+<script>
+	var $$=jQuery.noConflict();
+	mui.init({
+				pullRefresh: {
+					container: '#offCanvasContentScroll',
+					down: {
+						callback: pulldownRefresh
+					},
+					up: {
+						contentrefresh: '正在加载...',
+						callback: pullupRefresh
+					}
+				}
+			});
+			var count = 0;
+			var page = 1;
+			var size = 10;
+			
+	var ajaxIng = false;
+	/**
+	 * 下拉刷新具体业务实现
+	 */
+	function pulldownRefresh() {
+		if (ajaxIng == true) {
+			return;
+		}
+		ajaxIng = true;
+		// setTimeout(function() {
+			mui.ajax(ypyC.service_host+'/bill/expense?page=1&size='+size,{
+				dataType:'json',//服务器返回json格式数据
+				type:'get',//HTTP请求类型
+				timeout:10000,//超时时间设置为10秒；
+				headers:{'token':localStorage.getItem('token')},
+				success:function(data){
+					if(data.code == 201) {
+						localStorage.removeItem('token');
+						mui.openWindow({
+							'url':'login.html'
+						});
+					} else if(data.code == 0) {
+						// html = splitList(data.data.list, table);
+						var html = '';
+						for(i in data.data.list) {
+							html += splitList(data.data.list[i]);
+						}
+						$$('.mui-scroll .list').html(html);
+						mui('#offCanvasContentScroll').pullRefresh().endPulldownToRefresh(); //refresh completed
+						count = parseInt(data.data.totalPage);
+						mui.previewImage();
+					} else {
+						mui.toast(data.msg);
+					}
+					ajaxIng = false;
+				},
+				error:function(xhr,type,errorThrown){
+					mui.toast('系统错误');
+					ajaxIng = false;
+				}
+			});
+		// }, 1500);
+	}
+	/**
+	 * 上拉加载具体业务实现
+	 */
+	function pullupRefresh() {
+		if (ajaxIng == true) {
+			return;
+		}
+		ajaxIng = true;
+		// setTimeout(function() {
+			mui.ajax(ypyC.service_host+'/bill/expense?page='+page+'&size='+size,{
+				dataType:'json',//服务器返回json格式数据
+				type:'get',//HTTP请求类型
+				timeout:10000,//超时时间设置为10秒；
+				headers:{'token':localStorage.getItem('token')},
+				success:function(data){
+					if(data.code == 201) {
+						localStorage.removeItem('token');
+						mui.openWindow({
+							'url':'login.html'
+						});
+					} else if(data.code == 0) {
+						// html = splitList(data.data.list, table);
+						var html = '';
+						for(i in data.data.list) {
+							html += splitList(data.data.list[i]);
+						}
+						$$('.mui-scroll .list').append(html);
+						page = page + 1;
+						count = parseInt(data.data.totalPage);
+						console.log(count);
+						mui.previewImage();
+						mui('#offCanvasContentScroll').pullRefresh().endPullupToRefresh((page > count)); //参数为true代表没有更多数据了。
+					} else {
+						mui.toast(data.msg);
+					}
+					ajaxIng = false;
+				},
+				error:function(xhr,type,errorThrown){
+					mui.toast('系统错误');
+					ajaxIng = false;
+				}
+			});
+			
+		// }, 1800);
+	}
+	if (mui.os.plus) {
+		mui.plusReady(function() {
+			setTimeout(function() {
+				mui('#offCanvasContentScroll').pullRefresh().pullupLoading();
+			}, 1000);
+
+		});
+	} else {
+		mui.ready(function() {
+			mui('#offCanvasContentScroll').pullRefresh().pullupLoading();
+		});
+	}
+	function splitList(data)
+	{
+		html = '';
+		html += '<div class="mui-card card-status-'+data.at_status+'">';
+		html += '<div class="mui-card-header">'
+		if (data.role == 'expenser') {
+			html += '您向'+data.to_realname+'发起申请'+(data.at_type == 'income' ? '上缴' : '报销')+'<i class="layui-icon" style="font-size:14px;">';
+		} else {
+			html += data.realname+'向您发起申请报销'+(data.at_type == 'income' ? '上缴' : '报销')+'<i class="layui-icon" style="font-size:14px;">';
+		}
+		var htmlBtn = '';
+		if (data.at_status == 1) {
+			html += '待审核';
+			htmlBtn += (data.role == 'expenser') ? '<button class="layui-btn layui-btn-sm expense-edit">修改</button><button class="layui-btn layui-btn-sm layui-btn-danger expense-cancel">取消</button>' : '<button class="layui-btn layui-btn-sm expense-agree">同意</button><button class="layui-btn layui-btn-sm layui-btn-danger expense-refuse">拒绝</button>';
+		} else if(data.at_status == 2){
+			html += '待打款';
+			if(data.at_type == 'income'){
+				htmlBtn += (data.role == 'expenser') ? '<button class="layui-btn layui-btn-sm expense-pay">已打款</button><button class="layui-btn layui-btn-sm layui-btn-danger expense-cancel">取消</button>' : '';
+			}else{
+				htmlBtn += (data.role == 'expenser') ? '<button class="layui-btn layui-btn-sm layui-btn-danger expense-cancel">取消</button>' : '<button class="layui-btn layui-btn-sm expense-pay">已打款</button><button class="layui-btn layui-btn-sm layui-btn-danger expense-refuse">拒绝</button>';
+			}
+		} else if(data.at_status == 3){
+			html += '待确认';
+			if(data.at_type == 'income'){
+				htmlBtn += (data.role == 'expenser') ? '' : '<button class="layui-btn layui-btn-sm expense-done">收到款</button><button class="layui-btn layui-btn-sm layui-btn-warm expense-nopay">未打款</button>';
+			}else{
+				htmlBtn += (data.role == 'expenser') ? '<button class="layui-btn layui-btn-sm expense-done">收到款</button><button class="layui-btn layui-btn-sm layui-btn-warm expense-nopay">未打款</button>' : '';
+			}
+		} else if(data.at_status == 4){
+			html += '已完成';
+		} else if(data.at_status == 5){
+			html += '已取消';
+		} else if(data.at_status == 6){
+			html += '已拒绝';
+		}
+		html += '</i></div>';
+		
+		html += '<div class="mui-card-content">';
+			html += '<ul class="mui-table-view">';
+				html += '<li class="mui-table-view-cell">报销标题：'+data.title+'</li>';
+				html += '<li class="mui-table-view-cell">报销内容：'+data.content+'</li>';
+				html += '<li class="mui-table-view-cell">报销金额：'+data.price+' 元</li>';
+				html += '<li class="mui-table-view-cell">费用日期：'+data.at_date+'</li>';
+				html += '<li class="mui-table-view-cell">报销明细：';
+				if (data.imgs.length > 0) {
+					for(j in data.imgs) {
+						html += '<img class="upload-img" src="'+data.imgs[j].img_url+'" data-preview-src="" data-preview-group="'+data.id+'" width="90"/>';
+					}
+				}
+				html += '</li>';
+			html += '</ul>';
+			html += '</div>';
+		html += '<div class="mui-card-footer" data-id="'+data.id+'"><span>'+htmlBtn+'</span></div>';
+		html += '</div>';
+		return html;
+	}
+	$$(function(){
+		//修改
+		$$('#list').on('click', '.expense-edit', function(){
+			var id = $$(this).closest('.mui-card-footer').data('id');
+			mui.openWindow({
+				'url':'setexpense.html?id='+id
+			});
+		});
+
+		//取消
+		$$('#list').on('click', '.expense-cancel', function(){
+			var id = $$(this).closest('div').data('id');
+			mui.confirm('确认取消？', '提示', ['确认', '取消'], function(e){
+				if (e.index == 0) {
+					changeStatus(id, 5)
+				}
+			});
+		});
+
+		//同意
+		$$('#list').on('click', '.expense-agree', function(){
+			var id = $$(this).closest('div').data('id');
+			mui.confirm('确认同意？', '提示', ['确认', '取消'], function(e){
+				if (e.index == 0) {
+					changeStatus(id, 2)
+				}
+			});
+		});
+
+		//打款
+		$$('#list').on('click', '.expense-pay', function(){
+			var id = $$(this).closest('div').data('id');
+			mui.confirm('确认已打款？', '提示', ['确认', '取消'], function(e){
+				if (e.index == 0) {
+					changeStatus(id, 3)
+				}
+			});
+		});
+
+		//未打款
+		$$('#list').on('click', '.expense-nopay', function(){
+			var id = $$(this).closest('div').data('id');
+			mui.confirm('确认未收到打款？', '提示', ['确认', '取消'], function(e){
+				if (e.index == 0) {
+					changeStatus(id, 2)
+				}
+			});
+		});
+
+		//完成
+		$$('#list').on('click', '.expense-done', function(){
+			var id = $$(this).closest('div').data('id');
+			mui.confirm('确认已收到打款？', '提示', ['确认', '取消'], function(e){
+				if (e.index == 0) {
+					changeStatus(id, 4)
+				}
+			});
+		});
+
+		//拒绝
+		$$('#list').on('click', '.expense-refuse', function(){
+			var id = $$(this).closest('div').data('id');
+			mui.confirm('确认拒绝？', '提示', ['确认', '取消'], function(e){
+				if (e.index == 0) {
+					changeStatus(id, 6)
+				}
+			});
+		});
+	});
+	function changeStatus(id, status)
+	{
+		if (ajaxIng == true) {
+			return;
+		}
+		ajaxIng = true;
+		mui.ajax(ypyC.service_host+'/bill/change',{
+			data:{
+				'id':id,
+				'status':status
+			},
+			dataType:'json',//服务器返回json格式数据
+			type:'POST',//HTTP请求类型
+			timeout:10000,//超时时间设置为10秒；
+			headers:{'token':localStorage.getItem('token')},
+			success:function(data){
+				ajaxIng = false;
+				if(data.code == 201) {
+					localStorage.removeItem('token');
+					mui.openWindow({
+						'url':'login.html'
+					});
+				} else if(data.code == 0) {
+					mui.toast(data.msg);
+					pulldownRefresh();
+				} else {
+					mui.toast(data.msg);
+				}
+			},
+			error:function(xhr,type,errorThrown){
+				mui.toast('系统错误');
+				ajaxIng = false;
+			}
+		});
+		
+	}
+	
+</script>
+</body>
+</html>
