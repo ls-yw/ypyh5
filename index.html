@@ -225,7 +225,7 @@
 				html += '</li>';
 			html += '</ul>';
 			html += '</div>';
-		html += '<div class="mui-card-footer" data-id="'+data.id+'"><span>'+htmlBtn+'</span></div>';
+		html += '<div class="mui-card-footer" data-id="'+data.id+'" data-type="'+data.at_type+'"><span>'+htmlBtn+'</span></div>';
 		html += '</div>';
 		return html;
 	}
@@ -233,8 +233,9 @@
 		//修改
 		$$('#list').on('click', '.expense-edit', function(){
 			var id = $$(this).closest('.mui-card-footer').data('id');
+			var type = $$(this).closest('div').data('type');
 			mui.openWindow({
-				'url':'setexpense.html?id='+id
+				'url':(type == 'income' ? 'setincome' : 'setexpense')+'.html?id='+id+'&type='+type
 			});
 		});
 
