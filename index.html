@@ -26,9 +26,14 @@
 							发起报销
 						</a>
 					</li>
-					<li class="mui-table-view-cell" href="/setincome.html">
-						<a class="mui-navigate-right">
+					<li class="mui-table-view-cell">
+						<a class="mui-navigate-right" href="/setincome.html">
 							发起上缴
+						</a>
+					</li>
+					<li class="mui-table-view-cell">
+						<a class="mui-navigate-right" href="/recharge.html">
+							充值记录
 						</a>
 					</li>
 				</ul>
@@ -39,6 +44,9 @@
 	<div class="mui-inner-wrap">
 		<header class="mui-bar mui-bar-nav">
 			<a href="#offCanvasSide" class="mui-icon mui-action-menu mui-icon-bars mui-pull-left"></a>
+			<button type="button" class="mui-btn mui-btn-link mui-pull-right logout">退出</button>
+			<a class="mui-btn mui-btn-link mui-pull-right red" id="user-balance">0</a>
+			<button type="button" class="mui-btn mui-btn-blue mui-pull-right recharge-btn">充值</button>
 			<h1 class="mui-title">列表</h1>
 		</header>
 		<div id="offCanvasContentScroll" class="mui-content mui-scroll-wrapper"  style="overflow: auto;">
@@ -72,6 +80,22 @@
 			var count = 0;
 			var page = 1;
 			var size = 10;
+			
+			mui('#offCanvasSideScroll').on('tap', 'a', function() {
+				mui.openWindow({
+					id: this.getAttribute('href'),
+					url: this.href,
+					styles: {
+						popGesture: "close"
+					},
+					show: {
+						aniShow: "pop-in"
+					},
+					waiting: {
+						autoShow: false
+					}
+				});
+			});
 			
 	var ajaxIng = false;
 	/**
@@ -297,6 +321,100 @@
 					changeStatus(id, 6)
 				}
 			});
+		});
+		$$('.mui-bar').on('click', '.recharge-btn', function(){
+			mui.prompt('请输入充值金额','充值金额','充值',['充值','取消'],function(e){
+				if(e.index == 0) {
+					var amount = e.value;
+					if (ajaxIng == true) {
+						return;
+					}
+					ajaxIng = true;
+					mui.ajax(ypyC.service_host+'/user/recharge',{
+						data:{
+							'amount':amount
+						},
+						dataType:'json',//服务器返回json格式数据
+						type:'POST',//HTTP请求类型
+						timeout:10000,//超时时间设置为10秒；
+						headers:{'token':localStorage.getItem('token')},
+						success:function(data){
+							ajaxIng = false;
+							if(data.code == 201) {
+								localStorage.removeItem('token');
+								mui.openWindow({
+									'url':'login.html'
+								});
+							} else if(data.code == 0) {
+								mui.toast('充值成功，请等待对方审核');
+							} else {
+								mui.toast(data.msg);
+								return false;
+							}
+						},
+						error:function(xhr,type,errorThrown){
+							mui.toast('系统错误');
+							ajaxIng = false;
+						}
+					});
+				}
+			},'div');
+		});
+		$$('.mui-bar').on('click', '.logout', function(){
+			if (ajaxIng == true) {
+				return;
+			}
+			ajaxIng = true;
+			mui.ajax(ypyC.service_host+'/login/logout',{
+				dataType:'json',//服务器返回json格式数据
+				type:'get',//HTTP请求类型
+				timeout:10000,//超时时间设置为10秒；
+				headers:{'token':localStorage.getItem('token')},
+				success:function(data){
+					ajaxIng = false;
+					if(data.code == 201) {
+						localStorage.removeItem('token');
+						mui.openWindow({
+							'url':'login.html'
+						});
+					} else if(data.code == 0) {
+						localStorage.removeItem('token');
+						mui.openWindow({
+							'url':'login.html'
+						});
+					} else {
+						mui.toast(data.msg);
+					}
+				},
+				error:function(xhr,type,errorThrown){
+					mui.toast('系统错误');
+					ajaxIng = false;
+				}
+			});
+		});
+		
+		mui.ajax(ypyC.service_host+'/user/info',{
+			dataType:'json',//服务器返回json格式数据
+			type:'GET',//HTTP请求类型
+			timeout:10000,//超时时间设置为10秒；
+			headers:{'token':localStorage.getItem('token')},
+			success:function(data){
+				ajaxIng = false;
+				if(data.code == 201) {
+					localStorage.removeItem('token');
+					mui.openWindow({
+						'url':'login.html'
+					});
+				} else if(data.code == 0) {
+					$$('#user-balance').text(data.data.balance);
+				} else {
+					mui.toast(data.msg);
+				}
+			},
+			error:function(xhr,type,errorThrown){
+				mui.toast('系统错误');
+				ajaxIng = false;
+			}
 		});
 	});
 	function changeStatus(id, status)

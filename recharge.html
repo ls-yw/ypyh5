@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>充值记录</title>
+		<link href="css/bootstrap.min.css" rel="stylesheet" />
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<link href="css/base.css" rel="stylesheet" />
+		<link href="css/mui.picker.min.css" rel="stylesheet" />
+		<link href="css/mui.poppicker.css" rel="stylesheet" />
+		<style>
+			.select-btn{
+				float: none !important;
+				width: auto !important;
+			}
+			#offCanvasContentScroll form .mui-input-row{
+				padding: 5px 0 10px 0;
+				height: auto;
+			}
+			.upload-img{
+				margin: 5px 0 0 20px;
+			}
+			.img-list .img-list-li{
+				display: inline-block;
+				position: relative;
+				height: auto;
+			}
+			.img-list .img-list-li .mui-icon{
+				position: absolute;
+				top: 0px;
+				right: 0;
+				color: red;
+				cursor: pointer;
+				font-weight: bold;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="offCanvasWrapper" class="mui-off-canvas-wrap mui-draggable">
+			<!--侧滑菜单部分-->
+			<aside id="offCanvasSide" class="mui-off-canvas-left">
+				<div id="offCanvasSideScroll" class="mui-scroll-wrapper">
+					<div class="mui-scroll">
+						<div class="title" style="margin-bottom: 25px;">导航</div>
+						<ul class="mui-table-view mui-table-view-chevron mui-table-view-inverted">
+							<li class="mui-table-view-cell">
+								<a class="mui-navigate-right" id="menu1" href="/setexpense.html">
+									发起报销
+								</a>
+							</li>
+							<li class="mui-table-view-cell">
+								<a class="mui-navigate-right" href="/setincome.html">
+									发起上缴
+								</a>
+							</li>
+							<li class="mui-table-view-cell">
+								<a class="mui-navigate-right mui-active" href="/recharge.html">
+									充值记录
+								</a>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</aside>
+			<!--主界面部分-->
+			<div class="mui-inner-wrap">
+				<header class="mui-bar mui-bar-nav">
+					<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+					<h1 class="mui-title">充值记录</h1>
+				</header>
+				<div id="offCanvasContentScroll" class="mui-content mui-scroll-wrapper" style="overflow: auto;">
+					<div class="mui-card">
+						<ul class="mui-table-view">
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script src="js/mui.min.js"></script>
+		<script type="application/javascript" src="js/jquery.min.js"></script>
+		<script src="js/mui.picker.min.js"></script>
+		<script src="js/mui.poppicker.js"></script>
+		<script src="js/mui.dtpicker.js"></script>
+		<script src="js/plupload/plupload.full.min.js"></script>
+		<script type="application/javascript" src="js/config.js"></script>
+		<script src="js/common.js"></script>
+		<script>
+			var $$=jQuery.noConflict();
+			mui.init({
+						pullRefresh: {
+							container: '#offCanvasContentScroll',
+							down: {
+								callback: pulldownRefresh
+							},
+							up: {
+								contentrefresh: '正在加载...',
+								callback: pullupRefresh
+							}
+						}
+					});
+					var count = 0;
+					var page = 1;
+					var size = 10;
+			mui.ready(function() {
+				mui('#offCanvasSideScroll').on('tap', 'a', function() {
+					mui.openWindow({
+						id: this.getAttribute('href'),
+						url: this.href,
+						styles: {
+							popGesture: "close"
+						},
+						show: {
+							aniShow: "pop-in"
+						},
+						waiting: {
+							autoShow: false
+						}
+					});
+				});
+				mui('#offCanvasContentScroll').on('tap', '.back-btn', function() {
+					mui.openWindow({
+						id: 'index',
+						url: '/',
+						styles: {
+							popGesture: "close"
+						},
+						show: {
+							aniShow: "pop-in"
+						},
+						waiting: {
+							autoShow: false
+						}
+					});
+				});
+		});
+		
+		var ajaxIng = false;
+		/**
+		 * 下拉刷新具体业务实现
+		 */
+		function pulldownRefresh() {
+			if (ajaxIng == true) {
+				return;
+			}
+			ajaxIng = true;
+				mui.ajax(ypyC.service_host + '/user/rechargeList?page=1', {
+					dataType: 'json', //服务器返回json格式数据
+					type: 'get', //HTTP请求类型
+					timeout: 10000, //超时时间设置为10秒；
+					headers: {
+						'token': localStorage.getItem('token')
+					},
+					success: function(res) {
+						if (res.code == 201) {
+							localStorage.removeItem('token');
+							mui.openWindow({
+								'url': 'login.html'
+							});
+						} else if (res.code == 0) {
+							var html = splitHtml(res.data);
+							$$('#offCanvasContentScroll .mui-card ul').append(html);
+						} else {
+							mui.toast(res.msg);
+						}
+					},
+					error: function(xhr, type, errorThrown) {
+						mui.toast('系统错误');
+					}
+				});
+		}
+		/**
+		 * 上拉加载具体业务实现
+		 */
+		function pullupRefresh() {
+			if (ajaxIng == true) {
+				return;
+			}
+			ajaxIng = true;
+			// setTimeout(function() {
+				mui.ajax(ypyC.service_host+'/user/rechargeList?page='+page+'&size='+size,{
+					dataType:'json',//服务器返回json格式数据
+					type:'get',//HTTP请求类型
+					timeout:10000,//超时时间设置为10秒；
+					headers:{'token':localStorage.getItem('token')},
+					success: function(res) {
+						if (res.code == 201) {
+							localStorage.removeItem('token');
+							mui.openWindow({
+								'url': 'login.html'
+							});
+						} else if (res.code == 0) {
+							var html = splitHtml(res.data);
+							$$('#offCanvasContentScroll .mui-card ul').append(html);
+						} else {
+							mui.toast(res.msg);
+						}
+					},
+					error: function(xhr, type, errorThrown) {
+						mui.toast('系统错误');
+					}
+				});
+				
+			// }, 1800);
+		}
+		if (mui.os.plus) {
+			mui.plusReady(function() {
+				setTimeout(function() {
+					mui('#offCanvasContentScroll').pullRefresh().pullupLoading();
+				}, 1000);
+		
+			});
+		} else {
+			mui.ready(function() {
+				mui('#offCanvasContentScroll').pullRefresh().pullupLoading();
+			});
+		}
+		function splitHtml(data)
+		{
+			var html = '';
+			if (data.length > 0) {
+				for (i in data) {
+					html += '<li class="mui-table-view-cell">'+data[i].uid_name +' 向 '+data[i].to_uid_name +' 充值了 ' +data[i].amount + '元';
+					if (data[i].recharge_status == 1) {
+						html += ' 审核中 ';
+						html += ' <button type="button" class="mui-btn mui-btn-link green" style="right:35px;">同意</button> <button type="button" class="mui-btn mui-btn-link red" style="right:5px;">拒绝</button> ';
+					} else if(data[i].recharge_status == 2) {
+						html += ' 已同意';
+					} else if(data[i].recharge_status == 3) {
+						html += ' 已被拒绝';
+					}
+					html += '</li>';
+				}
+			}
+			return html;
+		}
+		</script>
+	</body>
+</html>

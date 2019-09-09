@@ -10,3 +10,12 @@
 .card-status-4 {
 	border: #2AC845 1px solid;
 }
+.red{
+	color: red !important;
+}
+.green{
+	color: green !important;
+}
+.logout{
+	color: #777777 !important;
+}
