@@ -217,7 +217,7 @@
 			if(data.at_type == 'income'){
 				htmlBtn += (data.role == 'expenser') ? '<button class="layui-btn layui-btn-sm expense-pay">已打款</button><button class="layui-btn layui-btn-sm layui-btn-danger expense-cancel">取消</button>' : '';
 			}else{
-				htmlBtn += (data.role == 'expenser') ? '<button class="layui-btn layui-btn-sm layui-btn-danger expense-cancel">取消</button>' : '<button class="layui-btn layui-btn-sm expense-pay">已打款</button><button class="layui-btn layui-btn-sm layui-btn-danger expense-refuse">拒绝</button>';
+				htmlBtn += (data.role == 'expenser') ? '<button class="layui-btn layui-btn-sm layui-btn-danger expense-cancel">取消</button>' : '<button class="layui-btn layui-btn-sm expense-pay">去扣款</button><button class="layui-btn layui-btn-sm layui-btn-danger expense-refuse">拒绝</button>';
 			}
 		} else if(data.at_status == 3){
 			html += '待确认';
@@ -287,7 +287,7 @@
 		//打款
 		$$('#list').on('click', '.expense-pay', function(){
 			var id = $$(this).closest('div').data('id');
-			mui.confirm('确认已打款？', '提示', ['确认', '取消'], function(e){
+			mui.confirm('确认扣款？', '提示', ['确认', '取消'], function(e){
 				if (e.index == 0) {
 					changeStatus(id, 3)
 				}
