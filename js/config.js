@@ -1,3 +1,3 @@
 var ypyC = {
-	"service_host" : "http://dev.xxx.com"
+	"service_host" : "http://dev.ypy.woodlsy.com"
 }
