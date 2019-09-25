@@ -204,9 +204,9 @@
 		html += '<div class="mui-card card-status-'+data.at_status+'">';
 		html += '<div class="mui-card-header">'
 		if (data.role == 'expenser') {
-			html += '您向'+data.to_realname+'发起申请'+(data.at_type == 'income' ? '上缴' : '报销')+'<i class="layui-icon" style="font-size:14px;">';
+			html += data.id+'：您向'+data.to_realname+'发起申请'+(data.at_type == 'income' ? '上缴' : '报销')+'<i class="layui-icon" style="font-size:14px;">';
 		} else {
-			html += data.realname+'向您发起申请报销'+(data.at_type == 'income' ? '上缴' : '报销')+'<i class="layui-icon" style="font-size:14px;">';
+			html += data.id+'：'+data.realname+'向您发起申请报销'+(data.at_type == 'income' ? '上缴' : '报销')+'<i class="layui-icon" style="font-size:14px;">';
 		}
 		var htmlBtn = '';
 		if (data.at_status == 1) {
