@@ -1,460 +1,351 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
-    <title>YPY</title>
-    <link href="css/mui.min.css" rel="stylesheet"/>
-	<link href="css/mui.previewimage.css" rel="stylesheet"/>
-	<link href="css/base.css" rel="stylesheet"/>
-	<style>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>YPY</title>
+		<link href="plugins/jqweui/dist/css/jquery-weui.css" rel="stylesheet" />
+		<link href="plugins/jqweui/dist/lib/weui.min.css" rel="stylesheet" />
+		<link href="css/base.css" rel="stylesheet" />
+		<style>
+		body, html {
+		  height: 100%;
+		  -webkit-tap-highlight-color: transparent;
+		}
 		.mui-card-footer button{
 			margin: 5px;;
 		}
+		.weui-tab__bd-item.weui-pull-to-refresh{
+			top: 0px;
+		}
+		.content-padded{
+			margin-top: 10px;;
+		}
+		.weui-tab__bd .weui-tab__bd-item{
+			width: 100%;
+		}
+		.weui-loadmore{
+			margin: 10px auto;
+		}
+		.weui-photo-browser-modal .photo-container img{
+			margin-top:0px;
+		}
+		.weui-photo-browser-modal{
+			z-index:1000;
+		}
 	</style>
-</head>
-<body>
-<div id="offCanvasWrapper" class="mui-off-canvas-wrap mui-draggable">
-	<!--侧滑菜单部分-->
-	<aside id="offCanvasSide" class="mui-off-canvas-left">
-		<div id="offCanvasSideScroll" class="mui-scroll-wrapper">
-			<div class="mui-scroll">
-				<div class="title" style="margin-bottom: 25px;"><a style="color: #FFFFFF;" href="/index.html">首页</a></div>
-				<ul class="mui-table-view mui-table-view-chevron mui-table-view-inverted">
-					<li class="mui-table-view-cell">
-						<a class="mui-navigate-right" id="menu1" href="/setexpense.html">
-							发起报销
-						</a>
-					</li>
-					<li class="mui-table-view-cell">
-						<a class="mui-navigate-right" href="/setincome.html">
-							发起上缴
-						</a>
-					</li>
-					<li class="mui-table-view-cell">
-						<a class="mui-navigate-right" href="/recharge.html">
-							充值记录
-						</a>
-					</li>
-				</ul>
+	</head>
+	<body ontouchstart>
+		<div class="weui-tab">
+			<div class="weui-tab__bd">
+				<div id="tab1" class="weui-tab__bd-item weui-tab__bd-item--active">
+					<div class="weui-pull-to-refresh__layer">
+						<div class='weui-pull-to-refresh__arrow'></div>
+						<div class='weui-pull-to-refresh__preloader'></div>
+						<div class="down">下拉刷新</div>
+						<div class="up">释放刷新</div>
+						<div class="refresh">正在刷新</div>
+					</div>
+					<div class="content-padded">
+					</div>
+					<div class="weui-loadmore">
+						<i class="weui-loading"></i>
+						<span class="weui-loadmore__tips">正在加载</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="weui-tabbar">
+				<a href="#tab1" class="weui-tabbar__item weui-bar__item--on">
+					<!-- <span class="weui-badge" style="position: absolute;top: -.4em;right: 1em;">8</span> -->
+					<div class="weui-tabbar__icon">
+						<img src="/images/icon_nav_article.png" alt="">
+					</div>
+					<p class="weui-tabbar__label">列表</p>
+				</a>
+				<a href="/setexpense.html" class="weui-tabbar__item">
+					<div class="weui-tabbar__icon">
+						<img src="/images/icon_nav_ptr.png" alt="">
+					</div>
+					<p class="weui-tabbar__label">报销</p>
+				</a>
+				<a href="/setincome.html" class="weui-tabbar__item">
+					<div class="weui-tabbar__icon">
+						<img src="/images/icon_nav_up.png" alt="">
+					</div>
+					<p class="weui-tabbar__label">上缴</p>
+				</a>
+				<a href="/my.html" class="weui-tabbar__item">
+					<div class="weui-tabbar__icon">
+						<img src="./images/icon_nav_city.png" alt="">
+					</div>
+					<p class="weui-tabbar__label">我</p>
+				</a>
 			</div>
 		</div>
-	</aside>
-	<!--主界面部分-->
-	<div class="mui-inner-wrap">
-		<header class="mui-bar mui-bar-nav">
-			<a href="#offCanvasSide" class="mui-icon mui-action-menu mui-icon-bars mui-pull-left"></a>
-			<button type="button" class="mui-btn mui-btn-link mui-pull-right logout">退出</button>
-			<a class="mui-btn mui-btn-link mui-pull-right red" id="user-balance">0</a>
-			<button type="button" class="mui-btn mui-btn-blue mui-btn-link mui-pull-right recharge-btn">充值</button>
-			<!-- <h1 class="mui-title">列表</h1> -->
-		</header>
-		<div id="offCanvasContentScroll" class="mui-content">
-			<div class="mui-scroll">
-				<div class="list" id="list"></div>
-			</div>
-		</div>
-		<!-- off-canvas backdrop -->
-		<div class="mui-off-canvas-backdrop"></div>
-	</div>
-</div>
-<script src="js/mui.min.js"></script>
-<script type="application/javascript" src="js/config.js"></script>
-<script type="application/javascript" src="js/jquery.min.js"></script>
-<script src="js/mui.previewimage.js"></script>
-<script src="js/mui.zoom.js"></script>
-<script>
-	var $$=jQuery.noConflict();
-	mui.init({
-				pullRefresh: {
-					container: '#offCanvasContentScroll',
-					down: {
-						callback: pulldownRefresh
-					},
-					up: {
-						contentrefresh: '正在加载...',
-						callback: pullupRefresh
-					}
-				}
-			});
-			var count = 0;
+
+		<script src="plugins/jqweui/dist/lib/jquery-2.1.4.js"></script>
+		<script src="plugins/jqweui/dist/lib/fastclick.js"></script>
+		<script src="plugins/jqweui/dist/js/jquery-weui.js"></script>
+		<script src="plugins/jqweui/dist/js/swiper.js"></script>
+		<script type="application/javascript" src="js/config.js"></script>
+		<script>
 			var page = 1;
-			var size = 10;
-			
-			mui('#offCanvasSideScroll').on('tap', 'a', function() {
-				mui.openWindow({
-					id: this.getAttribute('href'),
-					url: this.href,
-					styles: {
-						popGesture: "close"
-					},
-					show: {
-						aniShow: "pop-in"
-					},
-					waiting: {
-						autoShow: false
-					}
+			var row = 5;
+			var dataLoading = true;
+			$(function() {
+				$('.weui-tab__bd-item').pullToRefresh(function() {
+					setTimeout(function() {
+						getData(1, 1);
+						$('.weui-tab__bd-item').pullToRefreshDone();
+					}, 2000);
+				});
+				var loading = false; //状态标记
+				$('.weui-tab__bd-item').infinite().on("infinite", function() {
+					if (loading) return;
+					loading = true;
+					setTimeout(function() {
+						getData(page, 2);
+						loading = false;
+					}, 1500); //模拟延迟
+				});
+				getData(1, 1);
+				$('#tab1').on('click', '.upload-img', function() {
+					var imgs = [];
+					$(this).closest('span').find('.upload-img').each(function() {
+						imgs.push($(this).attr('src'));
+					});
+					console.log(imgs);
+					var pb1 = $.photoBrowser({
+						items: imgs,
+						initIndex: $(this).data('index')
+					});
+					pb1.open();
+				});
+				//修改
+				$('#tab1').on('click', '.expense-edit', function() {
+					var id = $(this).closest('div').data('id');
+					var type = $(this).closest('div').data('type');
+					window.location.href = '/' + (type == 'income' ? 'setincome' : 'setexpense') + '.html?id=' + id + '&type=' +
+						type;
+				});
+
+				//取消
+				$('#tab1').on('click', '.expense-cancel', function() {
+					var id = $(this).closest('div').data('id');
+					$.confirm("确认取消？", function() {
+						changeStatus(id, 5);
+					});
+				});
+
+				//同意
+				$('#tab1').on('click', '.expense-agree', function() {
+					var id = $(this).closest('div').data('id');
+					$.confirm("确认同意？", function() {
+						changeStatus(id, 2);
+					});
+				});
+
+				//打款
+				$('#list').on('click', '.expense-pay', function() {
+					var id = $(this).closest('div').data('id');
+					$.confirm("确认扣款？", function() {
+						changeStatus(id, 3);
+					});
+				});
+
+				//未打款
+				$('#tab1').on('click', '.expense-nopay', function() {
+					var id = $(this).closest('div').data('id');
+					$.confirm("确认未收到打款？", function() {
+						changeStatus(id, 2);
+					});
+				});
+
+				//完成
+				$('#list').on('click', '.expense-done', function() {
+					var id = $(this).closest('div').data('id');
+					$.confirm("确认已收到打款？", function() {
+						changeStatus(id, 4);
+					});
+				});
+
+				//拒绝
+				$('#tab1').on('click', '.expense-refuse', function() {
+					var id = $(this).closest('div').data('id');
+					$.confirm("确认拒绝？", function() {
+						changeStatus(id, 6);
+					});
 				});
 			});
 
-	var ajaxIng = false;
-	/**
-	 * 下拉刷新具体业务实现
-	 */
-	function pulldownRefresh() {
-		if (ajaxIng == true) {
-			return;
-		}
-		ajaxIng = true;
-		// setTimeout(function() {
-			mui.ajax(ypyC.service_host+'/bill/expense?page=1&size='+size,{
-				dataType:'json',//服务器返回json格式数据
-				type:'get',//HTTP请求类型
-				timeout:10000,//超时时间设置为10秒；
-				headers:{'token':localStorage.getItem('token')},
-				success:function(data){
-					if(data.code == 201) {
-						localStorage.removeItem('token');
-						mui.openWindow({
-							'url':'login.html'
-						});
-					} else if(data.code == 0) {
-						// html = splitList(data.data.list, table);
-						var html = '';
-						for(i in data.data.list) {
-							html += splitList(data.data.list[i]);
-						}
-						$$('.mui-scroll .list').html(html);
-						mui('#offCanvasContentScroll').pullRefresh().endPulldownToRefresh(); //refresh completed
-						count = parseInt(data.data.totalPage);
-						mui.previewImage();
-						page = 1;
-					} else {
-						mui.toast(data.msg);
-					}
-					ajaxIng = false;
-				},
-				error:function(xhr,type,errorThrown){
-					mui.toast('系统错误');
-					ajaxIng = false;
-				}
-			});
-		// }, 1500);
-	}
-	/**
-	 * 上拉加载具体业务实现
-	 */
-	function pullupRefresh() {
-		if (ajaxIng == true) {
-			return;
-		}
-		ajaxIng = true;
-		// setTimeout(function() {
-			mui.ajax(ypyC.service_host+'/bill/expense?page='+page+'&size='+size,{
-				dataType:'json',//服务器返回json格式数据
-				type:'get',//HTTP请求类型
-				timeout:10000,//超时时间设置为10秒；
-				headers:{'token':localStorage.getItem('token')},
-				success:function(data){
-					if(data.code == 201) {
-						localStorage.removeItem('token');
-						mui.openWindow({
-							'url':'login.html'
-						});
-					} else if(data.code == 0) {
-						// html = splitList(data.data.list, table);
-						var html = '';
-						for(i in data.data.list) {
-							html += splitList(data.data.list[i]);
-						}
-						$$('.mui-scroll .list').append(html);
-						page = page + 1;
-						count = parseInt(data.data.totalPage);
-						console.log(count);
-						mui.previewImage();
-						mui('#offCanvasContentScroll').pullRefresh().endPullupToRefresh((page > count)); //参数为true代表没有更多数据了。
-					} else {
-						mui.toast(data.msg);
-					}
-					ajaxIng = false;
-				},
-				error:function(xhr,type,errorThrown){
-					mui.toast('系统错误');
-					ajaxIng = false;
-				}
-			});
-			
-		// }, 1800);
-	}
-	if (mui.os.plus) {
-		mui.plusReady(function() {
-			setTimeout(function() {
-				mui('#offCanvasContentScroll').pullRefresh().pullupLoading();
-			}, 1000);
-
-		});
-	} else {
-		mui.ready(function() {
-			mui('#offCanvasContentScroll').pullRefresh().pullupLoading();
-		});
-	}
-	function splitList(data)
-	{
-		html = '';
-		html += '<div class="mui-card card-status-'+data.at_status+'">';
-		html += '<div class="mui-card-header">'
-		if (data.role == 'expenser') {
-			html += data.id+'：您向'+data.to_realname+'发起申请'+(data.at_type == 'income' ? '上缴' : '报销')+'<i class="layui-icon" style="font-size:14px;">';
-		} else {
-			html += data.id+'：'+data.realname+'向您发起申请报销'+(data.at_type == 'income' ? '上缴' : '报销')+'<i class="layui-icon" style="font-size:14px;">';
-		}
-		var htmlBtn = '';
-		if (data.at_status == 1) {
-			html += '待审核';
-			htmlBtn += (data.role == 'expenser') ? '<button class="layui-btn layui-btn-sm expense-edit">修改</button><button class="layui-btn layui-btn-sm layui-btn-danger expense-cancel">取消</button>' : '<button class="layui-btn layui-btn-sm expense-agree">同意</button><button class="layui-btn layui-btn-sm layui-btn-danger expense-refuse">拒绝</button>';
-		} else if(data.at_status == 2){
-			html += '待打款';
-			if(data.at_type == 'income'){
-				htmlBtn += (data.role == 'expenser') ? '<button class="layui-btn layui-btn-sm expense-pay">已打款</button><button class="layui-btn layui-btn-sm layui-btn-danger expense-cancel">取消</button>' : '';
-			}else{
-				htmlBtn += (data.role == 'expenser') ? '<button class="layui-btn layui-btn-sm layui-btn-danger expense-cancel">取消</button>' : '<button class="layui-btn layui-btn-sm expense-pay">去扣款</button><button class="layui-btn layui-btn-sm layui-btn-danger expense-refuse">拒绝</button>';
-			}
-		} else if(data.at_status == 3){
-			html += '待确认';
-			if(data.at_type == 'income'){
-				htmlBtn += (data.role == 'expenser') ? '' : '<button class="layui-btn layui-btn-sm expense-done">收到款</button><button class="layui-btn layui-btn-sm layui-btn-warm expense-nopay">未打款</button>';
-			}else{
-				htmlBtn += (data.role == 'expenser') ? '<button class="layui-btn layui-btn-sm expense-done">收到款</button><button class="layui-btn layui-btn-sm layui-btn-warm expense-nopay">未打款</button>' : '';
-			}
-		} else if(data.at_status == 4){
-			html += '已完成';
-		} else if(data.at_status == 5){
-			html += '已取消';
-		} else if(data.at_status == 6){
-			html += '已拒绝';
-		}
-		html += '</i></div>';
-		
-		html += '<div class="mui-card-content">';
-			html += '<ul class="mui-table-view">';
-				html += '<li class="mui-table-view-cell">报销标题：'+data.title+'</li>';
-				html += '<li class="mui-table-view-cell">报销内容：'+data.content+'</li>';
-				html += '<li class="mui-table-view-cell">报销金额：'+data.price+' 元</li>';
-				html += '<li class="mui-table-view-cell">费用日期：'+data.at_date+'</li>';
-				html += '<li class="mui-table-view-cell">报销明细：';
-				if (data.imgs.length > 0) {
-					for(j in data.imgs) {
-						html += '<img class="upload-img" src="'+data.imgs[j].img_url+'" data-preview-src="" data-preview-group="'+data.id+'" width="90"/>';
-					}
-				}
-				html += '</li>';
-			html += '</ul>';
-			html += '</div>';
-		html += '<div class="mui-card-footer" data-id="'+data.id+'" data-type="'+data.at_type+'"><span>'+htmlBtn+'</span></div>';
-		html += '</div>';
-		return html;
-	}
-	$$(function(){
-		//修改
-		$$('#list').on('click', '.expense-edit', function(){
-			var id = $$(this).closest('.mui-card-footer').data('id');
-			var type = $$(this).closest('div').data('type');
-			mui.openWindow({
-				'url':(type == 'income' ? 'setincome' : 'setexpense')+'.html?id='+id+'&type='+type
-			});
-		});
-
-		//取消
-		$$('#list').on('click', '.expense-cancel', function(){
-			var id = $$(this).closest('div').data('id');
-			mui.confirm('确认取消？', '提示', ['确认', '取消'], function(e){
-				if (e.index == 0) {
-					changeStatus(id, 5)
-				}
-			});
-		});
-
-		//同意
-		$$('#list').on('click', '.expense-agree', function(){
-			var id = $$(this).closest('div').data('id');
-			mui.confirm('确认同意？', '提示', ['确认', '取消'], function(e){
-				if (e.index == 0) {
-					changeStatus(id, 2)
-				}
-			});
-		});
-
-		//打款
-		$$('#list').on('click', '.expense-pay', function(){
-			var id = $$(this).closest('div').data('id');
-			mui.confirm('确认扣款？', '提示', ['确认', '取消'], function(e){
-				if (e.index == 0) {
-					changeStatus(id, 3)
-				}
-			});
-		});
-
-		//未打款
-		$$('#list').on('click', '.expense-nopay', function(){
-			var id = $$(this).closest('div').data('id');
-			mui.confirm('确认未收到打款？', '提示', ['确认', '取消'], function(e){
-				if (e.index == 0) {
-					changeStatus(id, 2)
-				}
-			});
-		});
-
-		//完成
-		$$('#list').on('click', '.expense-done', function(){
-			var id = $$(this).closest('div').data('id');
-			mui.confirm('确认已收到打款？', '提示', ['确认', '取消'], function(e){
-				if (e.index == 0) {
-					changeStatus(id, 4)
-				}
-			});
-		});
-
-		//拒绝
-		$$('#list').on('click', '.expense-refuse', function(){
-			var id = $$(this).closest('div').data('id');
-			mui.confirm('确认拒绝？', '提示', ['确认', '取消'], function(e){
-				if (e.index == 0) {
-					changeStatus(id, 6)
-				}
-			});
-		});
-		$$('.mui-bar').on('click', '.recharge-btn', function(){
-			mui.prompt('请输入充值金额','充值金额','充值',['充值','取消'],function(e){
-				if(e.index == 0) {
-					var amount = e.value;
-					if (ajaxIng == true) {
-						return;
-					}
-					ajaxIng = true;
-					mui.ajax(ypyC.service_host+'/user/recharge',{
-						data:{
-							'amount':amount
-						},
-						dataType:'json',//服务器返回json格式数据
-						type:'POST',//HTTP请求类型
-						timeout:10000,//超时时间设置为10秒；
-						headers:{'token':localStorage.getItem('token')},
-						success:function(data){
-							ajaxIng = false;
-							if(data.code == 201) {
-								localStorage.removeItem('token');
-								mui.openWindow({
-									'url':'login.html'
-								});
-							} else if(data.code == 0) {
-								mui.toast('充值成功，请等待对方审核');
-							} else {
-								mui.toast(data.msg);
-								return false;
+			function getData(npage, type) {
+				$.ajax({
+					url: ypyC.service_host + '/bill/expense?page=' + npage + '&size=' + row,
+					dataType: 'json', //服务器返回json格式数据
+					type: 'get', //HTTP请求类型
+					timeout: 10000, //超时时间设置为10秒；
+					headers: {
+						'token': localStorage.getItem('token')
+					},
+					success: function(data) {
+						if (data.code == 201) {
+							localStorage.removeItem('token');
+							window.location.href = '/login.html';
+						} else if (data.code == 0) {
+							// html = splitList(data.data.list, table);
+							var html = '';
+							for (i in data.data.list) {
+								html += splitList(data.data.list[i]);
 							}
-						},
-						error:function(xhr,type,errorThrown){
-							mui.toast('系统错误');
-							ajaxIng = false;
+							count = parseInt(data.data.totalPage);
+							if (type == 1) {
+								$('#tab1 .content-padded').html(html);
+							} else {
+								$('#tab1 .content-padded').append(html);
+							}
+							page = npage + 1;
+							var totalPage = parseInt(data.data.totalPage);
+							if (page > totalPage) {
+								dataLoading = false;
+								$('.weui-loadmore').addClass('weui-loadmore_line');
+								$('.weui-loadmore .weui-loading').remove();
+								$('.weui-loadmore .weui-loadmore__tips').text('我也是有底线的');
+								$('.weui-tab__bd-item').destroyInfinite();
+							} else {
+								if (dataLoading == false) {
+									dataLoading = true;
+									$('.weui-loadmore').removeClass('weui-loadmore_line');
+									$('.weui-loadmore').html('<i class="weui-loading"></i><span class="weui-loadmore__tips">正在加载</span>');
+									$('.weui-tab__bd-item').infinite();
+								}
+							}
+						} else {
+							$.toptip(data.msg, 'error');
 						}
-					});
-				}
-			},'div');
-		});
-		$$('.mui-bar').on('click', '.logout', function(){
-			if (ajaxIng == true) {
-				return;
-			}
-			ajaxIng = true;
-			mui.ajax(ypyC.service_host+'/login/logout',{
-				dataType:'json',//服务器返回json格式数据
-				type:'get',//HTTP请求类型
-				timeout:10000,//超时时间设置为10秒；
-				headers:{'token':localStorage.getItem('token')},
-				success:function(data){
-					ajaxIng = false;
-					if(data.code == 201) {
-						localStorage.removeItem('token');
-						mui.openWindow({
-							'url':'login.html'
-						});
-					} else if(data.code == 0) {
-						localStorage.removeItem('token');
-						mui.openWindow({
-							'url':'login.html'
-						});
-					} else {
-						mui.toast(data.msg);
+					},
+					error: function(xhr, type, errorThrown) {
+						$.toptip('系统错误', 'error');
 					}
-				},
-				error:function(xhr,type,errorThrown){
-					mui.toast('系统错误');
-					ajaxIng = false;
-				}
-			});
-		});
-		
-		mui.ajax(ypyC.service_host+'/user/info',{
-			dataType:'json',//服务器返回json格式数据
-			type:'GET',//HTTP请求类型
-			timeout:10000,//超时时间设置为10秒；
-			headers:{'token':localStorage.getItem('token')},
-			success:function(data){
-				ajaxIng = false;
-				if(data.code == 201) {
-					localStorage.removeItem('token');
-					mui.openWindow({
-						'url':'login.html'
-					});
-				} else if(data.code == 0) {
-					$$('#user-balance').text(data.data.balance);
-				} else {
-					mui.toast(data.msg);
-				}
-			},
-			error:function(xhr,type,errorThrown){
-				mui.toast('系统错误');
-				ajaxIng = false;
+				});
 			}
-		});
-	});
-	function changeStatus(id, status)
-	{
-		if (ajaxIng == true) {
-			return;
-		}
-		ajaxIng = true;
-		mui.ajax(ypyC.service_host+'/bill/change',{
-			data:{
-				'id':id,
-				'status':status
-			},
-			dataType:'json',//服务器返回json格式数据
-			type:'POST',//HTTP请求类型
-			timeout:10000,//超时时间设置为10秒；
-			headers:{'token':localStorage.getItem('token')},
-			success:function(data){
-				ajaxIng = false;
-				if(data.code == 201) {
-					localStorage.removeItem('token');
-					mui.openWindow({
-						'url':'login.html'
-					});
-				} else if(data.code == 0) {
-					mui.toast(data.msg);
-					pulldownRefresh();
+
+			function splitList(data) {
+				html = '';
+				html += '<div class="weui-form-preview card-status-' + data.at_status + '">';
+				html += '    <div class="weui-form-preview__hd">';
+				html += '        <span></span>';
+				html += '		<label class="weui-form-preview__label">';
+				if (data.role == 'expenser') {
+					html += data.id + '：您向' + data.to_realname + '发起申请' + (data.at_type == 'income' ? '上缴' : '报销');
 				} else {
-					mui.toast(data.msg);
+					html += data.id + '：' + data.realname + '向您发起申请报销' + (data.at_type == 'income' ? '上缴' : '报销');
 				}
-			},
-			error:function(xhr,type,errorThrown){
-				mui.toast('系统错误');
-				ajaxIng = false;
+				html += '       </label>';
+				html += '		<i>';
+				var htmlBtn = '';
+				if (data.at_status == 1) {
+					html += '待审核';
+					htmlBtn += (data.role == 'expenser') ?
+						'<button class="weui-form-preview__btn expense-edit">修改</button><button class="weui-form-preview__btn expense-cancel">取消</button>' :
+						'<button class="weui-form-preview__btn expense-agree">同意</button><button class="weui-form-preview__btn expense-refuse">拒绝</button>';
+				} else if (data.at_status == 2) {
+					html += '待打款';
+					if (data.at_type == 'income') {
+						htmlBtn += (data.role == 'expenser') ?
+							'<button class="weui-form-preview__btn expense-pay">已打款</button><button class="weui-form-preview__btn expense-cancel">取消</button>' :
+							'';
+					} else {
+						htmlBtn += (data.role == 'expenser') ? '<button class="weui-form-preview__btn expense-cancel">取消</button>' :
+							'<button class="weui-form-preview__btn expense-pay">去扣款</button><button class="weui-form-preview__btn expense-refuse">拒绝</button>';
+					}
+				} else if (data.at_status == 3) {
+					html += '待确认';
+					if (data.at_type == 'income') {
+						htmlBtn += (data.role == 'expenser') ? '' :
+							'<button class="weui-form-preview__btn expense-done">收到款</button><button class="weui-form-preview__btn expense-nopay">未打款</button>';
+					} else {
+						htmlBtn += (data.role == 'expenser') ?
+							'<button class="weui-form-preview__btn expense-done">收到款</button><button class="weui-form-preview__btn expense-nopay">未打款</button>' :
+							'';
+					}
+				} else if (data.at_status == 4) {
+					html += '已完成';
+				} else if (data.at_status == 5) {
+					html += '已取消';
+				} else if (data.at_status == 6) {
+					html += '已拒绝';
+				}
+				html += '		</i>';
+				html += '	</div>';
+				html += '	<div class="weui-form-preview__bd">';
+				html += '		<div class="weui-form-preview__item">';
+				html += '			<label class="weui-form-preview__label">报销标题：</label>';
+				html += '			<span class="weui-form-preview__value">' + data.title + '</span>';
+				html += '		</div>';
+				html += '		<div class="weui-form-preview__item">';
+				html += '			<label class="weui-form-preview__label">报销内容：</label>';
+				html += '			<span class="weui-form-preview__value">' + data.content + '</span>';
+				html += '		</div>';
+				html += '		<div class="weui-form-preview__item">';
+				html += '			<label class="weui-form-preview__label">报销金额：</label>';
+				html += '			<span class="weui-form-preview__value">' + data.price + '</span>';
+				html += '		</div>';
+				html += '		<div class="weui-form-preview__item">';
+				html += '			<label class="weui-form-preview__label">费用日期：</label>';
+				html += '			<span class="weui-form-preview__value">' + data.at_date + '</span>';
+				html += '		</div>';
+				html += '		<div class="weui-form-preview__item">';
+				html += '			<label class="weui-form-preview__label">报销明细：</label>';
+				html += '			<span class="weui-form-preview__value">';
+				if (data.imgs.length > 0) {
+					for (j in data.imgs) {
+						html += '<img class="upload-img" src="' + data.imgs[j].img_url + '" data-index="' + j + '" data-id="' + data.id +
+							'" width="90"/>';
+					}
+				}
+				html += '           </span>';
+				html += '		</div>';
+				html += '	</div>';
+				html += '	<div class="weui-form-preview__ft" data-id="' + data.id + '" data-type="' + data.at_type + '">';
+				html += htmlBtn
+				html += '	</div>';
+				html += '</div><br>';
+				return html;
 			}
-		});
-		
-	}
-	
-</script>
-</body>
+
+			function changeStatus(id, status) {
+				$.ajax({
+					url: ypyC.service_host + '/bill/change',
+					data: {
+						'id': id,
+						'status': status
+					},
+					dataType: 'json', //服务器返回json格式数据
+					type: 'POST', //HTTP请求类型
+					timeout: 10000, //超时时间设置为10秒；
+					headers: {
+						'token': localStorage.getItem('token')
+					},
+					success: function(data) {
+						ajaxIng = false;
+						if (data.code == 201) {
+							localStorage.removeItem('token');
+							window.location.href = '/login.html';
+						} else if (data.code == 0) {
+							$.toptip(data.msg, 'success');
+							getData(1, 1);
+						} else {
+							$.toptip(data.msg, 'error');
+						}
+					},
+					error: function(xhr, type, errorThrown) {
+						$.toptip('系统错误', 'error');
+						ajaxIng = false;
+					}
+				});
+
+			}
+		</script>
+	</body>
 </html>

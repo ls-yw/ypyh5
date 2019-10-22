@@ -41,3 +41,18 @@
 .logout{
 	color: #777777 !important;
 }
+body, html {
+	  height: 100%;
+	  -webkit-tap-highlight-color: transparent;
+	}
+.weui-tab .weui-uploader__files .weui-uploader__file{
+	position: relative;
+}
+.weui-tab .weui-uploader__files .weui-uploader__file .weui-icon-cancel{
+	position: absolute;
+	top: 0px;
+	right: 0;
+	color: red;
+	cursor: pointer;
+	font-weight: bold;
+}
