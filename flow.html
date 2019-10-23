@@ -92,65 +92,11 @@
 					}, 1500); //模拟延迟
 				});
 				getData(1, 1);
-				$('#tab1').on('click', '.agreeBtn', function(){
-					var id = $(this).closest('div').data('id');
-					$.confirm('确认同意？', function(){
-						$.ajax({
-							url:ypyC.service_host+'/user/rechargeStatus',
-							data: {'id':id, 'status': 2},
-							dataType:'json',//服务器返回json格式数据
-							type:'POST',//HTTP请求类型
-							timeout:10000,//超时时间设置为10秒；
-							headers:{'token':localStorage.getItem('token')},
-							success: function(res) {
-								if (res.code == 201) {
-									localStorage.removeItem('token');
-									window.location.href = '/login.html';
-								} else if (res.code == 0) {
-									$.toptip('已同意', 'success');
-									getData(1, 1);
-								} else {
-									$.toptip(res.msg, 'error');
-								}
-							},
-							error: function(xhr, type, errorThrown) {
-								$.toptip('系统错误', 'error');
-							}
-						});
-					});
-				});
-				$('#tab1').on('click', '.refuseBtn', function(){
-					var id = $(this).closest('div').data('id');
-					$.confirm('确认拒绝？', function(){
-						$.ajax({
-							url:ypyC.service_host+'/user/rechargeStatus',
-							data: {'id':id, 'status': 3},
-							dataType:'json',//服务器返回json格式数据
-							type:'POST',//HTTP请求类型
-							timeout:10000,//超时时间设置为10秒；
-							headers:{'token':localStorage.getItem('token')},
-							success: function(res) {
-								if (res.code == 201) {
-									localStorage.removeItem('token');
-									window.location.href = '/login.html';
-								} else if (res.code == 0) {
-									$.toptip('已拒绝', 'success');
-									getData(1, 1);
-								} else {
-									$.toptip(res.msg, 'error');
-								}
-							},
-							error: function(xhr, type, errorThrown) {
-								$.toptip('系统错误', 'error');
-							}
-						});
-					});
-				});
 			});
 
 			function getData(npage, type) {
 				$.ajax({
-					url: ypyC.service_host + '/user/rechargeList?page=' + npage + '&size=' + row,
+					url: ypyC.service_host + '/user/flow?page=' + npage + '&size=' + row,
 					dataType: 'json', //服务器返回json格式数据
 					type: 'get', //HTTP请求类型
 					timeout: 10000, //超时时间设置为10秒；
@@ -163,8 +109,20 @@
 							window.location.href = '/login.html';
 						} else if (res.code == 0) {
 							var html = '';
+							var prevDate = '';
 							for (i in res.data.list) {
+								if (prevDate != res.data.list[i].create_at.substr(0, 10)) {
+									if (prevDate != '') {
+										html += '</div>';
+									}
+									html += '<div class="weui-cells__title">' + res.data.list[i].create_at.substr(0, 10) + '</div>';
+									html += '<div class="weui-cells">';
+								}
 								html += splitList(res.data.list[i]);
+								prevDate = res.data.list[i].create_at.substr(0, 10);
+							}
+							if (prevDate != '') {
+								html += '</div>';
 							}
 							count = parseInt(res.data.totalPage);
 
@@ -201,29 +159,20 @@
 
 			function splitList(data) {
 				var html = '';
-				html = '<div class="weui-cells__title">' + data.create_at + '</div>';
-				html += '<div class="weui-cells">';
 				html += '  <div class="weui-cell">';
 				html += '    <div class="weui-cell__bd">';
-				html += '      <p>' + data.uid_name + ' 向 ' + data.to_uid_name + ' 充值了 ' + data.amount + '元';
-				if (data.recharge_status == 1) {
-					html += ' <span class="red">审核中</span> ';
-				} else if (data.recharge_status == 2) {
-					html += ' <span class="green">已同意</span> ';
-				} else if (data.recharge_status == 3) {
-					html += ' <span class="gray">已拒绝</span> ';
+				html += '      <p>';
+				if(data.type == 1) {
+					html += ' 充值了 <span class="green">';
+					html += data.amount + '</span> 元';
+				} else {
+					html += ' 抵扣了 <span class="red">';
+					html += data.amount + '</span> 元';
 				}
+				html += '，剩余 <span class="orange">'+data.balance+'</sapn> 元';
 				html += '      </p>';
 				html += '    </div>';
-				if (data.hand == 1) {
-					html += '	<div class="weui-cell__ft" data-id="'+data.id+'">';
-					html += '	      <a href="javascript:;" class="weui-btn weui-btn_primary agreeBtn">同意</a>';
-					html += '	      <a href="javascript:;" class="weui-btn weui-btn_default refuseBtn">拒绝</a>';
-					html += '	</div>';
-				}
 				html += '  </div>';
-				html += '</div>';
-
 				return html;
 			}
 		</script>

@@ -35,8 +35,14 @@
 .red{
 	color: red !important;
 }
+.orange{
+	color: orange !important;
+}
 .green{
 	color: green !important;
+}
+.gray{
+	color: gray !important;
 }
 .logout{
 	color: #777777 !important;
@@ -55,4 +61,7 @@ body, html {
 	color: red;
 	cursor: pointer;
 	font-weight: bold;
+}
+.weui-tab__bd .weui-tab__bd-item{
+	width: 100%;
 }

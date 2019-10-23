@@ -5,9 +5,28 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
 		<title>YPY</title>
-		<link href="plugins/jqweui/dist/css/jquery-weui.css" rel="stylesheet" />
 		<link href="plugins/jqweui/dist/lib/weui.min.css" rel="stylesheet" />
+		<link href="plugins/jqweui/dist/css/jquery-weui.css" rel="stylesheet" />
 		<link href="css/base.css" rel="stylesheet" />
+		<style>
+			.demos-title {
+			  text-align: center;
+			  font-size: 34px;
+			  color: #3cc51f;
+			  font-weight: 400;
+			  margin: 0 15%;
+			}
+			
+			.demos-sub-title {
+			  text-align: center;
+			  color: #888;
+			  font-size: 14px;
+			}
+			
+			.demos-header {
+			  padding: 35px 0;
+			}
+		</style>
 	</head>
 
 	<body>
@@ -16,13 +35,39 @@
 				<div id="tab1" class="weui-tab__bd-item weui-tab__bd-item--active">
 					<div class="content-padded">
 						<header class='demos-header'>
-						  <h1 class="demos-title">jQuery WeUI</h1>
-						  <p class='demos-sub-title'>轻量强大的UI库，不仅仅是 WeUI</p>
+							<h1 class="demos-title">jQuery WeUI</h1>
+							<p class='demos-sub-title'>余额：<span class="user-balance"></span> 元</p>
 						</header>
+						<div class="weui-grids">
+							<a href="javascript:;" class="weui-grid js_grid recharge-btn">
+								<div class="weui-grid__icon">
+									<img src="images/icon_nav_button.png" alt="">
+								</div>
+								<p class="weui-grid__label">
+									余额充值
+								</p>
+							</a>
+							<a href="recharge.html" class="weui-grid js_grid">
+								<div class="weui-grid__icon">
+									<img src="images/icon_nav_cell.png" alt="">
+								</div>
+								<p class="weui-grid__label">
+									充值记录
+								</p>
+							</a>
+							<a href="/flow.html" class="weui-grid js_grid">
+								<div class="weui-grid__icon">
+									<img src="images/icon_nav_panel.png" alt="">
+								</div>
+								<p class="weui-grid__label">
+									流水
+								</p>
+							</a>
+						</div>
 					</div>
 				</div>
 			</div>
-		
+
 			<div class="weui-tabbar">
 				<a href="/index.html" class="weui-tabbar__item">
 					<!-- <span class="weui-badge" style="position: absolute;top: -.4em;right: 1em;">8</span> -->
@@ -55,8 +100,65 @@
 		<script src="plugins/jqweui/dist/js/jquery-weui.js"></script>
 		<script type="application/javascript" src="js/config.js"></script>
 		<script type="text/javascript">
-			
-			
+			$(function() {
+				$.ajax({
+					url: ypyC.service_host + '/user/info',
+					dataType: 'json', //服务器返回json格式数据
+					type: 'GET', //HTTP请求类型
+					timeout: 10000, //超时时间设置为10秒；
+					headers: {
+						'token': localStorage.getItem('token')
+					},
+					success: function(data) {
+						ajaxIng = false;
+						if (data.code == 201) {
+							localStorage.removeItem('token');
+							window.location.href = '/login.html';
+						} else if (data.code == 0) {
+							$('.demos-title').text(data.data.realname);
+							$('.user-balance').text(data.data.balance);
+						} else {
+							$.toptip(data.msg, 'error');
+						}
+					},
+					error: function(xhr, type, errorThrown) {
+						$.toptip('系统错误', 'error');
+					}
+				});
+				$('.recharge-btn').on('click', function() {
+					$.prompt({
+					  text: "金额只能为数字",
+					  title: "请输入充值金额",
+					  onOK: function(text) {
+						$.ajax({
+							url:ypyC.service_host + '/user/recharge', 
+							data: {
+								'amount': text
+							},
+							dataType: 'json', //服务器返回json格式数据
+							type: 'POST', //HTTP请求类型
+							timeout: 10000, //超时时间设置为10秒；
+							headers: {
+								'token': localStorage.getItem('token')
+							},
+							success: function(data) {
+								if (data.code == 201) {
+									localStorage.removeItem('token');
+									window.location.href = '/login.html';
+								} else if (data.code == 0) {
+									$.toptip('充值成功，请等待对方审核', 'success');
+								} else {
+									$.toptip(data.msg, 'error');
+								}
+							},
+							error: function(xhr, type, errorThrown) {
+								$.toptip('系统错误', 'error');
+							}
+						});
+					  },
+					});
+				});
+			});
 		</script>
 	</body>
 </html>
