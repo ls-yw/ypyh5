@@ -213,6 +213,9 @@
 					$.showLoading('图片上传中...');
 					uploader.start();
 				});
+				uploader.bind('Error', function(uploader, errObject) {
+					$.toptip(errObject.message, 'error');
+				});
 				uploader.bind('FileUploaded', function(uploader, file, responseObject) {
 					$.hideLoading();
 					var html = '<li class="weui-uploader__file" style="background-image:url(' + JSON.parse(responseObject.response)
@@ -282,7 +285,7 @@
 								window.location.href = '/login.html';
 							} else if (data.code == 0) {
 								$.toast("保存成功", function() {
-									// window.location.href = '/index.html';
+									window.location.href = '/index.html';
 								});
 							} else {
 								$.toptip(data.msg, 'error');
