@@ -4,33 +4,48 @@
 .title {
 	margin: 35px 15px 10px;
 }
-.card-status-1 {
+/* .card-status-1 {
 	border: #bdb23e 1px solid;
 	background: #f9f5cd;
 }
 .card-status-1 li{
 	background: #f9f5cd;
+} */
+.card-status-1 i{
+	color: red !important;
 }
-.card-status-2{
+/* .card-status-2{
 	border: #1a9089 1px solid;
 	background: #b3fdf9;
 }
 .card-status-2 li{
 	background: #b3fdf9;
+} */
+.card-status-2 i{
+	color: blue !important;
+}
+.card-status-3 i{
+	color: orange !important;
 }
 .card-status-4 {
-	border: #2AC845 1px solid;
-	background: #aff9af;
+	/* border: #2AC845 1px solid; */
+	/* background: #aff9af; */
+}
+.card-status-4 i{
+	color: green !important;
 }
 .card-status-4 li{
-	background: #aff9af;
+	/* background: #aff9af; */
 }
-.card-status-6 {
+/* .card-status-6 {
 	border: #869689 1px solid;
 	background: #d6dad7;
 }
 .card-status-6 li{
 	background: #d6dad7;
+} */
+.card-status-6 i,.card-status-5 i{
+	color: gray !important;
 }
 .red{
 	color: red !important;
