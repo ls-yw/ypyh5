@@ -147,7 +147,7 @@
 				});
 
 				//打款
-				$('#list').on('click', '.expense-pay', function() {
+				$('#tab1').on('click', '.expense-pay', function() {
 					var id = $(this).closest('div').data('id');
 					$.confirm("确认扣款？", function() {
 						changeStatus(id, 3);
@@ -163,7 +163,7 @@
 				});
 
 				//完成
-				$('#list').on('click', '.expense-done', function() {
+				$('#tab1').on('click', '.expense-done', function() {
 					var id = $(this).closest('div').data('id');
 					$.confirm("确认已收到打款？", function() {
 						changeStatus(id, 4);
