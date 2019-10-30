@@ -208,7 +208,7 @@
 						]
 					},
 					resize: {
-						quality: 80
+						width: 1000
 					}
 				});
 				//在实例对象上调用init()方法进行初始化
@@ -218,7 +218,8 @@
 					uploader.start();
 				});
 				uploader.bind('Error', function(uploader, errObject) {
-					$.toptip(errObject.message, 'error');
+					$.hideLoading();
+					$.toptip(errObject.message+' '+ypyC.service_host + '/upload/img', 'error');
 				});
 				uploader.bind('FileUploaded', function(uploader, file, responseObject) {
 					$.hideLoading();
